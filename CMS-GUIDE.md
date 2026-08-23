@@ -1,26 +1,47 @@
-# SHAKS CMS — Version 1.0.0
+# SHAKS Portfolio CMS — V1.0.0
 
-## Admin modules
+## CMS
+Admin areas:
 - Dashboard
-- Projects: create, edit, publish/archive, feature and delete
+- Projects
 - Categories
 - Services
 - Testimonials
-- Media Library: upload, metadata editing and protected deletion
-- Project galleries
-- Contact messages and status updates
-- Website settings
+- Media Library
+- Messages
+- Website Settings
 - SEO defaults
 
+## Supabase setup
+Run these SQL files in order:
+1. `supabase/schema.sql`
+2. `supabase/storage.sql`
+3. `supabase/security-fixes.sql`
+
+Create one administrator in Supabase Authentication. Add that user's Auth UUID to `public.admin_users`. Disable public sign-up after the admin account is created.
+
 ## Security
-Version 1 uses an explicit `admin_users` allow-list. Do not rely on merely being authenticated. The database policies in `schema.sql` and `storage.sql` are already scoped to `public.is_admin()`.
+The browser may contain the Supabase project URL and publishable/anon key. Never expose a service-role/secret key or database password.
 
-Create the first admin in Supabase Auth, then insert that user's UUID into `public.admin_users`. Disable public sign-up after the admin account exists.
+`security-fixes.sql` changes CMS access from generic authenticated access to the `admin_users` allow-list.
 
-## Deployment
-Cloudflare Pages should run `npm run build`. Set `SHAKS_SUPABASE_URL` and `SHAKS_SUPABASE_ANON_KEY` as build environment variables. The build script generates `js/supabase-config.js`; the generated file must not contain secrets beyond the browser-safe Supabase publishable/anon key.
+## Vercel
+Use the included `vercel.json`.
+
+Build command:
+`npm run build`
+
+Output directory:
+`dist`
+
+Vercel environment variables:
+- `SHAKS_SUPABASE_URL`
+- `SHAKS_SUPABASE_ANON_KEY`
+
+Redeploy after adding or changing them.
+
+## Cloudflare
+The same build can be hosted on Cloudflare Pages later. Its deployment directory is also `dist`.
 
 ## SEO
-The public pages contain titles, descriptions, canonical URLs, Open Graph and Twitter metadata. Project/post detail pages load content client-side, so their social previews use the generic fallback metadata unless prerendering is added later.
-
-The sitemap contains the stable public pages. A future SEO enhancement can generate project/post URLs from Supabase during the build.
+Replace the temporary domain in `robots.txt`, `sitemap.xml`, canonical URLs and OG URLs with the final SHAKS domain before launch.
