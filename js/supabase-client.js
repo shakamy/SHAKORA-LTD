@@ -1,15 +1,18 @@
 (()=>{
-  const s=document.createElement('script');
-  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-  s.onload=()=>{
-    if(!window.SHAKS_SUPABASE_URL||window.SHAKS_SUPABASE_URL.includes('YOUR-PROJECT'))return;
-    // Admin pages use sessionStorage so a login survives a page reload
-    // but is cleared as soon as the browser/tab is closed. Public pages
-    // don't authenticate, so the default (localStorage) is irrelevant there.
+  const boot=()=>{
+    if(!window.SHAKS_SUPABASE_URL||window.SHAKS_SUPABASE_URL.includes('YOUR-PROJECT')) return;
+    if(!window.supabase||typeof window.supabase.createClient!=='function'){
+      console.error('SHAKS: local Supabase library failed to load.');
+      return;
+    }
     const isAdmin=location.pathname.includes('/admin/');
-    const options=isAdmin?{auth:{storage:window.sessionStorage,persistSession:true,autoRefreshToken:true}}:undefined;
-    window.shaksSupabase=window.supabase.createClient(window.SHAKS_SUPABASE_URL,window.SHAKS_SUPABASE_ANON_KEY,options);
+    window.shaksSupabase=window.supabase.createClient(
+      window.SHAKS_SUPABASE_URL,
+      window.SHAKS_SUPABASE_ANON_KEY,
+      {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
+    );
     document.dispatchEvent(new Event('shaks:supabase-ready'));
   };
-  document.head.appendChild(s);
+  if(window.supabase) boot();
+  else document.addEventListener('shaks:supabase-library-ready',boot,{once:true});
 })();
