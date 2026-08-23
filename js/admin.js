@@ -89,7 +89,7 @@ async function uploadMedia(e){e.preventDefault();if(!await requireAdmin())return
 
 async function messages(){if(!await requireAdmin())return;const {data,error}=await shaksSupabase.from('contact_messages').select('*').order('created_at',{ascending:false});const el=$('[data-message-table]');if(error){el.innerHTML=`<p class="danger">${esc(error.message)}</p>`;return}el.innerHTML=`<div class="table-wrap"><table class="cms-table"><thead><tr><th>Contact</th><th>Service</th><th>Status</th><th>Date</th></tr></thead><tbody>${(data||[]).map(m=>`<tr><td><strong>${esc(m.name)}</strong><br><span class="help">${esc(m.email)}</span></td><td>${esc(m.service||'—')}</td><td><select data-message-status="${m.id}">${['new','contacted','in_discussion','won','lost','archived'].map(s=>`<option value="${s}" ${s===m.status?'selected':''}>${s}</option>`).join('')}</select></td><td>${new Date(m.created_at).toLocaleDateString()}</td></tr>`).join('')}</tbody></table></div>`;el.querySelectorAll('[data-message-status]').forEach(sel=>sel.onchange=async()=>{const r=await shaksSupabase.from('contact_messages').update({status:sel.value}).eq('id',sel.dataset.messageStatus);if(r.error)alert(r.error.message)})}
 
-document.addEventListener('shaks:supabase-ready',()=>{
+function initAdmin(){
  const lf=$('#login-form');if(lf)lf.addEventListener('submit',login);
  const p=document.body.dataset.adminPage;
  if(p==='dashboard')dashboard();
@@ -103,4 +103,9 @@ document.addEventListener('shaks:supabase-ready',()=>{
  if(p==='settings'){settings();$('#settings-form')?.addEventListener('submit',saveSettings)}
  if(p==='media'){media();$('#media-form')?.addEventListener('submit',uploadMedia)}
  document.querySelectorAll('[data-logout]').forEach(b=>b.onclick=logout);
-});
+}
+
+// supabase-client.js can finish before this deferred script registers its event listener.
+// Initialize immediately when the client is already available; otherwise wait for the event.
+if(window.shaksSupabase) initAdmin();
+else document.addEventListener('shaks:supabase-ready',initAdmin,{once:true});

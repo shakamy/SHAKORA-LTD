@@ -11,6 +11,7 @@
       window.SHAKS_SUPABASE_ANON_KEY,
       {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
     );
+    window.SHAKS_SUPABASE_READY = true;
     document.dispatchEvent(new Event('shaks:supabase-ready'));
   };
   if(window.supabase) boot();
